@@ -188,3 +188,49 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log("server running");
 });
+
+app.get("/api/notices", (req, res) => {
+
+  const file = path.join(__dirname, "data", "notices.json");
+
+  if (!fs.existsSync(file)) {
+    fs.writeFileSync(file, "[]");
+  }
+
+  const notices = JSON.parse(fs.readFileSync(file));
+
+  res.json({
+    success: true,
+    notices
+  });
+
+});
+
+app.post("/api/notices", (req, res) => {
+
+  const { title, content } = req.body;
+
+  const file = path.join(__dirname, "data", "notices.json");
+
+  let notices = [];
+
+  if (fs.existsSync(file)) {
+    notices = JSON.parse(fs.readFileSync(file));
+  }
+
+  const newNotice = {
+    id: Date.now(),
+    title,
+    content,
+    createdAt: new Date().toLocaleString("ko-KR")
+  };
+
+  notices.push(newNotice);
+
+  fs.writeFileSync(file, JSON.stringify(notices, null, 2));
+
+  res.json({
+    success: true
+  });
+
+});

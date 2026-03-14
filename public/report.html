@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>유저 신고 | 남양주시 다산동 RP</title>
+
+<style>
+
+body{
+margin:0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+background:linear-gradient(180deg,#ffffff,#fff4e8);
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+/* 신고 카드 */
+
+.container{
+
+width:520px;
+padding:45px;
+background:white;
+border-radius:24px;
+box-shadow:0 25px 60px rgba(0,0,0,0.12);
+animation:fadeUp 0.7s ease;
+
+}
+
+h1{
+margin-top:0;
+font-size:30px;
+text-align:center;
+}
+
+p{
+text-align:center;
+color:#666;
+margin-bottom:30px;
+}
+
+/* 입력 */
+
+label{
+font-weight:600;
+display:block;
+margin-top:20px;
+margin-bottom:6px;
+}
+
+input,textarea{
+
+width:100%;
+padding:14px;
+border-radius:12px;
+border:1px solid #ddd;
+font-size:14px;
+box-sizing:border-box;
+transition:0.2s;
+
+}
+
+input:focus,textarea:focus{
+outline:none;
+border-color:#ff8a3d;
+}
+
+textarea{
+resize:none;
+height:110px;
+}
+
+/* 버튼 */
+
+button{
+
+width:100%;
+margin-top:30px;
+padding:16px;
+border:none;
+border-radius:14px;
+background:linear-gradient(45deg,#ff8a3d,#ffb347);
+color:white;
+font-size:16px;
+font-weight:700;
+cursor:pointer;
+transition:0.25s;
+
+}
+
+button:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(255,140,50,0.4);
+}
+
+/* 애니메이션 */
+
+@keyframes fadeUp{
+
+from{
+opacity:0;
+transform:translateY(40px);
+}
+
+to{
+opacity:1;
+transform:translateY(0);
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>유저 신고</h1>
+
+<p>
+규칙을 위반한 유저를 신고해주세요.
+</p>
+
+<label>신고자 Roblox 닉네임</label>
+<input id="reporter" placeholder="본인의 Roblox 닉네임">
+
+<label>신고 대상 Roblox 닉네임</label>
+<input id="target" placeholder="신고할 유저 닉네임">
+
+<label>증거 영상 업로드</label>
+<input id="video" type="file">
+
+<label>신고 내용</label>
+<textarea id="desc" placeholder="무슨 일이 있었는지 자세히 작성해주세요"></textarea>
+
+<button onclick="submitReport()">
+신고 제출
+</button>
+
+</div>
+
+<script>
+
+function submitReport(){
+
+let reporter=document.getElementById("reporter").value
+let target=document.getElementById("target").value
+let video=document.getElementById("video").files.length
+let desc=document.getElementById("desc").value
+
+if(reporter==""){
+alert("신고자 Roblox 닉네임을 입력하세요")
+return
+}
+
+if(target==""){
+alert("신고 대상 닉네임을 입력하세요")
+return
+}
+
+if(video==0){
+alert("증거 영상을 첨부하세요")
+return
+}
+
+if(desc==""){
+alert("신고 내용을 입력하세요")
+return
+}
+
+/* 제출 후 감사 화면 */
+
+document.body.innerHTML=`
+
+<div style="
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+font-family:-apple-system,BlinkMacSystemFont;
+text-align:center;
+background:linear-gradient(180deg,#ffffff,#fff4e8);
+">
+
+<h1 style="font-size:42px;color:#ff8a3d;margin-bottom:10px;">
+신고해 주셔서 감사합니다
+</h1>
+
+<p style="color:#666;font-size:18px;">
+관리자가 신고 내용을 검토 후 처리할 예정입니다.
+</p>
+
+<button onclick="location.href='index.html'" style="
+margin-top:40px;
+padding:15px 40px;
+border:none;
+border-radius:14px;
+background:linear-gradient(45deg,#ff8a3d,#ffb347);
+color:white;
+font-weight:700;
+cursor:pointer;
+">
+홈으로 가기
+</button>
+
+</div>
+
+`
+
+}
+
+</script>
+
+</body>
+
+</html>
+
+<script>
+
+let user=localStorage.getItem("user")
+
+if(!user){
+
+location.href="/login.html"
+
+}
+
+</script>

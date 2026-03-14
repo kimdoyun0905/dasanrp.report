@@ -99,20 +99,26 @@ const upload = multer({
     },
   }),
   limits: { fileSize: 200 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = [
-      "video/mp4",
-      "video/webm",
-      "video/quicktime",
-      "video/x-matroska",
-    ];
+fileFilter: (req, file, cb) => {
 
-    if (allowed.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("영상 파일만 업로드할 수 있습니다."));
-    }
-  },
+  const allowed = [
+    "video/mp4",
+    "video/webm",
+    "video/quicktime",
+    "video/x-matroska",
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/gif"
+  ];
+
+  if (allowed.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("사진 또는 영상 파일만 업로드할 수 있습니다."));
+  }
+
+},
 });
 
 function requireLogin(req, res, next) {

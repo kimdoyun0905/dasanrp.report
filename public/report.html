@@ -1,28 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<link rel="stylesheet" href="/css/style.css">
-<title>신고</title>
-</head>
+<link rel="stylesheet" href="/css/ui.css">
 
-<body>
+<div class="container">
 
 <div class="card">
 
-<h2>유저 신고</h2>
+<div class="title">유저 신고</div>
 
 <form action="/report" method="POST" enctype="multipart/form-data">
 
-<textarea name="description" placeholder="신고 내용"></textarea>
+<textarea name="description" class="input" placeholder="신고 내용"></textarea>
 
-<input type="file" name="image">
+<input type="file" name="image" class="input">
 
-<button type="submit">신고 제출</button>
+<button class="button button-blue">신고 제출</button>
 
 </form>
 
 </div>
 
-</body>
-</html>
+</div>

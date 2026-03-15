@@ -1,13 +1,16 @@
-const express=require("express")
-const session=require("express-session")
-const multer=require("multer")
-const fs=require("fs")
+const express = require("express")
+const session = require("express-session")
+const multer = require("multer")
+const fs = require("fs")
+const path = require("path")
 
-const app=express()
-const PORT=process.env.PORT||3000
-const ADMIN="Sunandfriend2296"
+const app = express()
+const PORT = process.env.PORT || 3000
 
-app.set("trust proxy",1)
+const DATA = path.join(__dirname,"data")
+const UPLOAD = path.join(__dirname,"uploads")
+
+const ADMIN = "Sunandfriend2296"
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
@@ -21,27 +24,29 @@ saveUninitialized:false
 app.use(express.static("public"))
 app.use("/uploads",express.static("uploads"))
 
-if(!fs.existsSync("data"))fs.mkdirSync("data")
-if(!fs.existsSync("uploads"))fs.mkdirSync("uploads")
+if(!fs.existsSync(DATA)) fs.mkdirSync(DATA)
+if(!fs.existsSync(UPLOAD)) fs.mkdirSync(UPLOAD)
 
-if(!fs.existsSync("data/reports.json"))fs.writeFileSync("data/reports.json","[]")
-if(!fs.existsSync("data/notice.json"))fs.writeFileSync("data/notice.json",JSON.stringify([
-"허위 신고 시 제재될 수 있습니다.",
-"운영진 멘션은 긴급 상황에서만 사용하세요."
-],null,2))
+const USERS = path.join(DATA,"users.json")
+const REPORTS = path.join(DATA,"reports.json")
+const NOTICE = path.join(DATA,"notice.json")
 
-if(!fs.existsSync("data/users.json")){
-fs.writeFileSync("data/users.json",JSON.stringify([
+if(!fs.existsSync(USERS)){
+fs.writeFileSync(USERS,JSON.stringify([
 {username:"Sunandfriend2296",password:"1234"}
 ],null,2))
 }
 
-const storage=multer.diskStorage({
-destination:(req,file,cb)=>cb(null,"uploads/"),
-filename:(req,file,cb)=>cb(null,Date.now()+"-"+file.originalname)
-})
+if(!fs.existsSync(REPORTS)){
+fs.writeFileSync(REPORTS,"[]")
+}
 
-const upload=multer({storage})
+if(!fs.existsSync(NOTICE)){
+fs.writeFileSync(NOTICE,JSON.stringify([
+"허위 신고 시 제재될 수 있습니다.",
+"운영진 멘션은 긴급 상황에서만 사용하세요."
+],null,2))
+}
 
 function read(file){
 return JSON.parse(fs.readFileSync(file))
@@ -51,35 +56,52 @@ function write(file,data){
 fs.writeFileSync(file,JSON.stringify(data,null,2))
 }
 
-app.get("/",(req,res)=>res.redirect("/index.html"))
+app.get("/",(req,res)=>{
+res.redirect("/login.html")
+})
 
 app.get("/api/notices",(req,res)=>{
-res.json(read("data/notice.json"))
+res.json(read(NOTICE))
 })
 
 app.post("/login",(req,res)=>{
 
 const {username,password}=req.body
-const users=read("data/users.json")
 
-const user=users.find(u=>u.username===username&&u.password===password)
+const users=read(USERS)
 
-if(!user)return res.json({success:false})
+const user=users.find(u=>u.username===username && u.password===password)
+
+if(!user){
+return res.json({success:false})
+}
 
 req.session.user=username
+
 res.json({success:true})
 
 })
 
 app.get("/logout",(req,res)=>{
-req.session.destroy(()=>res.json({success:true}))
+req.session.destroy(()=>{
+res.json({success:true})
 })
+})
+
+const storage = multer.diskStorage({
+destination:(req,file,cb)=>cb(null,UPLOAD),
+filename:(req,file,cb)=>cb(null,Date.now()+"-"+file.originalname)
+})
+
+const upload = multer({storage})
 
 app.post("/report",upload.single("image"),(req,res)=>{
 
-if(!req.session.user)return res.status(403).send("login required")
+if(!req.session.user){
+return res.status(403).send("login required")
+}
 
-let reports=read("data/reports.json")
+let reports=read(REPORTS)
 
 reports.push({
 id:Date.now(),
@@ -89,7 +111,7 @@ image:req.file?"/uploads/"+req.file.filename:null,
 time:new Date().toLocaleString()
 })
 
-write("data/reports.json",reports)
+write(REPORTS,reports)
 
 res.redirect("/report.html")
 
@@ -97,23 +119,30 @@ res.redirect("/report.html")
 
 app.get("/admin/reports",(req,res)=>{
 
-if(req.session.user!==ADMIN)return res.status(403).send("admin only")
+if(req.session.user !== ADMIN){
+return res.status(403).send("admin only")
+}
 
-res.json(read("data/reports.json"))
+res.json(read(REPORTS))
 
 })
 
 app.delete("/admin/delete/:id",(req,res)=>{
 
-if(req.session.user!==ADMIN)return res.status(403).send("admin only")
+if(req.session.user !== ADMIN){
+return res.status(403).send("admin only")
+}
 
-let reports=read("data/reports.json")
-reports=reports.filter(r=>r.id!=req.params.id)
+let reports=read(REPORTS)
 
-write("data/reports.json",reports)
+reports = reports.filter(r=>r.id != req.params.id)
+
+write(REPORTS,reports)
 
 res.json({success:true})
 
 })
 
-app.listen(PORT,()=>console.log("server running"))
+app.listen(PORT,()=>{
+console.log("server running")
+})

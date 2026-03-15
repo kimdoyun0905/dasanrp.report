@@ -1,175 +1,88 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>로그인</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<title>관리자 로그인</title>
+
 <style>
-*{box-sizing:border-box}
-:root{
-  --orange:#ff8a3d;
-  --orange2:#ffb347;
-  --line:#ececec;
-  --text:#212529;
-  --muted:#6b7280;
-}
+
 body{
-  margin:0;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  background:linear-gradient(180deg,#ffffff,#fff7ec);
-  overflow:hidden;
+margin:0;
+font-family:Pretendard;
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#f5f6f8;
 }
-.glow{
-  position:absolute;
-  border-radius:50%;
-  opacity:.65;
-  z-index:-1;
-  animation:float 7s ease-in-out infinite;
-}
-.g1{width:280px;height:280px;background:#fff0c9;left:-80px;top:-40px}
-.g2{width:220px;height:220px;background:#ffd6e7;right:-60px;top:120px;animation-delay:1s}
-.g3{width:240px;height:240px;background:#d6eaff;right:140px;bottom:-90px;animation-delay:2s}
+
 .card{
-  width:100%;
-  max-width:420px;
-  background:rgba(255,255,255,.92);
-  backdrop-filter:blur(12px);
-  padding:42px;
-  border-radius:28px;
-  box-shadow:0 22px 55px rgba(0,0,0,.1);
-  animation:fadeUp .8s ease;
+width:420px;
+background:white;
+padding:40px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
-h1{
-  margin:0 0 10px;
-  font-size:34px;
-}
-.sub{
-  margin:0 0 24px;
-  color:var(--muted);
-  line-height:1.6;
-}
+
 input{
-  width:100%;
-  padding:15px 16px;
-  border:1px solid var(--line);
-  border-radius:14px;
-  margin-bottom:14px;
-  font-size:15px;
+width:100%;
+padding:14px;
+border-radius:10px;
+border:1px solid #ddd;
+margin-bottom:10px;
 }
-input:focus{
-  outline:none;
-  border-color:var(--orange);
-}
+
 button{
-  width:100%;
-  padding:15px 16px;
-  border:none;
-  border-radius:14px;
-  background:linear-gradient(45deg,var(--orange),var(--orange2));
-  color:white;
-  font-weight:800;
-  cursor:pointer;
-  transition:.22s;
+width:100%;
+padding:14px;
+border:none;
+border-radius:10px;
+background:black;
+color:white;
+cursor:pointer;
 }
-button:hover{transform:translateY(-2px)}
-.row{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  margin-top:16px;
-  flex-wrap:wrap;
-}
-.link-btn{
-  background:white;
-  color:#444;
-  border:1px solid var(--line);
-}
-.meta{
-  margin-top:18px;
-  font-size:14px;
-  color:var(--muted);
-  text-align:center;
-}
-.err{
-  margin-top:14px;
-  color:#e11d48;
-  font-weight:700;
-  min-height:20px;
-}
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(35px)}
-  to{opacity:1;transform:translateY(0)}
-}
-@keyframes float{
-  0%{transform:translateY(0)}
-  50%{transform:translateY(22px)}
-  100%{transform:translateY(0)}
-}
+
 </style>
 </head>
+
 <body>
-<div class="glow g1"></div>
-<div class="glow g2"></div>
-<div class="glow g3"></div>
 
 <div class="card">
-  <h1>로그인</h1>
-  <p class="sub">사이트 계정으로 로그인하고 공지와 신고 기능을 이용하세요.</p>
 
-  <input id="siteId" placeholder="사이트 아이디">
-  <input id="password" type="password" placeholder="비밀번호">
+<h2>관리자 로그인</h2>
 
-  <button id="loginBtn">로그인</button>
+<input id="username" placeholder="아이디">
+<input id="password" type="password" placeholder="비밀번호">
 
-  <div class="row">
-    <button class="link-btn" onclick="location.href='/signup.html'">회원가입</button>
-    <button class="link-btn" onclick="location.href='/index.html'">홈으로</button>
-  </div>
+<button onclick="login()">로그인</button>
 
-  <div class="err" id="errorText"></div>
-  <div class="meta">Roblox 인증은 회원가입 단계에서 진행됩니다.</div>
 </div>
 
 <script>
-async function boot() {
-  const meRes = await fetch("/api/me");
-  const me = await meRes.json();
-  if (me.loggedIn) {
-    location.href = "/index.html";
-  }
+
+async function login(){
+
+const username=document.getElementById("username").value
+const password=document.getElementById("password").value
+
+const res=await fetch("/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({username,password})
+})
+
+const data=await res.json()
+
+if(data.success){
+location.href="/admin.html"
+}else{
+alert("로그인 실패")
 }
-boot();
 
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const siteId = document.getElementById("siteId").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const errorText = document.getElementById("errorText");
-  errorText.textContent = "";
+}
 
-  if (!siteId || !password) {
-    errorText.textContent = "아이디와 비밀번호를 입력하세요.";
-    return;
-  }
-
-  const res = await fetch("/api/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ siteId, password }),
-  });
-
-  const data = await res.json();
-
-  if (!data.success) {
-    errorText.textContent = data.message || "로그인에 실패했습니다.";
-    return;
-  }
-
-  location.href = "/index.html";
-});
 </script>
+
 </body>
 </html>

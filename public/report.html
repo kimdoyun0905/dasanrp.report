@@ -1,249 +1,83 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>유저 신고 | 남양주시 다산동 RP</title>
+<meta charset="UTF-8">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(180deg, #ffffff, #fff4e8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-      box-sizing: border-box;
-    }
+<style>
 
-    .container {
-      width: 100%;
-      max-width: 520px;
-      padding: 45px;
-      background: white;
-      border-radius: 24px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
-      animation: fadeUp 0.7s ease;
-      box-sizing: border-box;
-    }
+body{
+margin:0;
+font-family:Pretendard;
+background:#f5f6f8;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
 
-    h1 {
-      margin-top: 0;
-      font-size: 30px;
-      text-align: center;
-    }
+.card{
+width:500px;
+background:white;
+padding:40px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
 
-    p {
-      text-align: center;
-      color: #666;
-      margin-bottom: 30px;
-    }
+textarea{
+width:100%;
+height:120px;
+padding:12px;
+border-radius:10px;
+border:1px solid #ddd;
+margin-bottom:10px;
+}
 
-    label {
-      font-weight: 600;
-      display: block;
-      margin-top: 20px;
-      margin-bottom: 6px;
-    }
+button{
+padding:12px;
+border:none;
+border-radius:10px;
+background:black;
+color:white;
+cursor:pointer;
+}
 
-    input,
-    textarea {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-      box-sizing: border-box;
-      transition: 0.2s;
-    }
-
-    input:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #ff8a3d;
-    }
-
-    textarea {
-      resize: none;
-      height: 110px;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 30px;
-      padding: 16px;
-      border: none;
-      border-radius: 14px;
-      background: linear-gradient(45deg, #ff8a3d, #ffb347);
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: 0.25s;
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(255, 140, 50, 0.4);
-    }
-
-    button:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(40px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <h1>유저 신고</h1>
 
-    <p>규칙을 위반한 유저를 신고해주세요.</p>
+<div class="card">
 
-    <label for="reporter">신고자 Roblox 닉네임</label>
-    <input id="reporter" placeholder="본인의 Roblox 닉네임" readonly />
+<h2>유저 신고</h2>
 
-    <label for="target">신고 대상 Roblox 닉네임</label>
-    <input id="target" placeholder="신고할 유저 닉네임" />
+<button onclick="generate()">인증코드 생성</button>
+<div id="code"></div>
 
-    <label for="video">증거 영상 업로드</label>
-    <input id="video" type="file" accept="video/*" />
+<form action="/report" method="POST" enctype="multipart/form-data">
 
-    <label for="desc">신고 내용</label>
-    <textarea id="desc" placeholder="무슨 일이 있었는지 자세히 작성해주세요"></textarea>
+<textarea name="description" placeholder="신고 내용"></textarea>
 
-    <button id="submitBtn" type="button" onclick="submitReport()">
-      신고 제출
-    </button>
-  </div>
+<input type="file" name="image">
 
-  <script>
-    async function loadUser() {
-      try {
-        const res = await fetch("/api/me");
-        const data = await res.json();
+<button type="submit">신고 제출</button>
 
-        if (!data.loggedIn || !data.user) {
-          location.href = "/login.html";
-          return;
-        }
+</form>
 
-        document.getElementById("reporter").value =
-          data.user.robloxUsername || "";
-      } catch (error) {
-        alert("로그인 정보를 불러오지 못했습니다.");
-        location.href = "/login.html";
-      }
-    }
+</div>
 
-    async function submitReport() {
-      const submitBtn = document.getElementById("submitBtn");
-      const reporter = document.getElementById("reporter").value.trim();
-      const target = document.getElementById("target").value.trim();
-      const videoInput = document.getElementById("video");
-      const file = videoInput.files[0];
-      const desc = document.getElementById("desc").value.trim();
+<script>
 
-      if (reporter === "") {
-        alert("신고자 Roblox 닉네임을 확인할 수 없습니다.");
-        return;
-      }
+async function generate(){
 
-      if (target === "") {
-        alert("신고 대상 닉네임을 입력하세요");
-        return;
-      }
+const res=await fetch("/generate-code",{credentials:"include"})
+const data=await res.json()
 
-      if (!file) {
-        alert("증거 영상을 첨부하세요");
-        return;
-      }
+document.getElementById("code").innerText="인증코드: "+data.code
 
-      if (desc === "") {
-        alert("신고 내용을 입력하세요");
-        return;
-      }
+}
 
-      try {
-        submitBtn.disabled = true;
-        submitBtn.textContent = "제출 중...";
+</script>
 
-        const formData = new FormData();
-        formData.append("targetUsername", target);
-        formData.append("description", desc);
-        formData.append("video", file);
-
-        const res = await fetch("/api/reports", {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          alert(data.message || "신고 제출에 실패했습니다.");
-          submitBtn.disabled = false;
-          submitBtn.textContent = "신고 제출";
-          return;
-        }
-
-        document.body.innerHTML = `
-          <div style="
-            height:100vh;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            flex-direction:column;
-            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-            text-align:center;
-            background:linear-gradient(180deg,#ffffff,#fff4e8);
-            padding:20px;
-            box-sizing:border-box;
-          ">
-            <h1 style="font-size:42px;color:#ff8a3d;margin-bottom:10px;">
-              신고해 주셔서 감사합니다
-            </h1>
-
-            <p style="color:#666;font-size:18px;">
-              관리자가 신고 내용을 검토 후 처리할 예정입니다.
-            </p>
-
-            <button onclick="location.href='index.html'" style="
-              margin-top:40px;
-              padding:15px 40px;
-              border:none;
-              border-radius:14px;
-              background:linear-gradient(45deg,#ff8a3d,#ffb347);
-              color:white;
-              font-weight:700;
-              cursor:pointer;
-            ">
-              홈으로 가기
-            </button>
-          </div>
-        `;
-      } catch (error) {
-        alert("신고 제출 중 오류가 발생했습니다.");
-        submitBtn.disabled = false;
-        submitBtn.textContent = "신고 제출";
-      }
-    }
-
-    loadUser();
-  </script>
 </body>
 </html>

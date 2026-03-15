@@ -9,13 +9,16 @@ const PORT = process.env.PORT || 3000
 
 const ADMIN = "Sunandfriend2296"
 
+app.set("trust proxy",1)
+
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 
 app.use(session({
 secret:"dasanrp-secret",
 resave:false,
-saveUninitialized:false
+saveUninitialized:false,
+cookie:{maxAge:1000*60*60}
 }))
 
 app.use(express.static("public"))
@@ -64,11 +67,14 @@ res.redirect("/login.html")
 app.post("/login",(req,res)=>{
 
 const {username,password}=req.body
+
 const users=getUsers()
 
 const user=users.find(u=>u.username===username && u.password===password)
 
-if(!user) return res.json({success:false})
+if(!user){
+return res.json({success:false})
+}
 
 req.session.user=username
 
@@ -84,7 +90,9 @@ res.json({success:true})
 
 app.post("/report",upload.single("image"),(req,res)=>{
 
-if(!req.session.user) return res.status(403).send("login required")
+if(!req.session.user){
+return res.status(403).send("login required")
+}
 
 let reports=getReports()
 

@@ -7,24 +7,13 @@ const path = require("path")
 const app = express()
 const PORT = process.env.PORT || 3000
 
-const DATA_DIR = path.join(__dirname,"data")
-const UPLOAD_DIR = path.join(__dirname,"uploads")
-
-if(!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR)
-if(!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR)
-
-const USERS_FILE = path.join(DATA_DIR,"users.json")
-const REPORT_FILE = path.join(DATA_DIR,"reports.json")
-
-if(!fs.existsSync(REPORT_FILE)) fs.writeFileSync(REPORT_FILE,"[]")
-
-const ADMIN_USER = "Sunandfriend2296"
+const ADMIN = "Sunandfriend2296"
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 
 app.use(session({
-secret:"report-secret",
+secret:"dasanrp-secret",
 resave:false,
 saveUninitialized:false
 }))
@@ -32,9 +21,22 @@ saveUninitialized:false
 app.use(express.static("public"))
 app.use("/uploads",express.static("uploads"))
 
+if(!fs.existsSync("data")) fs.mkdirSync("data")
+if(!fs.existsSync("uploads")) fs.mkdirSync("uploads")
+
+if(!fs.existsSync("data/reports.json")){
+fs.writeFileSync("data/reports.json","[]")
+}
+
+if(!fs.existsSync("data/users.json")){
+fs.writeFileSync("data/users.json",JSON.stringify([
+{username:"Sunandfriend2296",password:"1234"}
+],null,2))
+}
+
 const storage = multer.diskStorage({
 destination:(req,file,cb)=>{
-cb(null,UPLOAD_DIR)
+cb(null,"uploads/")
 },
 filename:(req,file,cb)=>{
 cb(null,Date.now()+"-"+file.originalname)
@@ -44,23 +46,20 @@ cb(null,Date.now()+"-"+file.originalname)
 const upload = multer({storage})
 
 function getUsers(){
-return JSON.parse(fs.readFileSync(USERS_FILE))
+return JSON.parse(fs.readFileSync("data/users.json"))
 }
 
 function getReports(){
-return JSON.parse(fs.readFileSync(REPORT_FILE))
+return JSON.parse(fs.readFileSync("data/reports.json"))
 }
 
 function saveReports(data){
-fs.writeFileSync(REPORT_FILE,JSON.stringify(data,null,2))
+fs.writeFileSync("data/reports.json",JSON.stringify(data,null,2))
 }
 
-function checkAdmin(req,res,next){
-if(req.session.user !== ADMIN_USER){
-return res.status(403).send("관리자만 접근 가능")
-}
-next()
-}
+app.get("/",(req,res)=>{
+res.redirect("/login.html")
+})
 
 app.post("/login",(req,res)=>{
 
@@ -69,9 +68,7 @@ const users=getUsers()
 
 const user=users.find(u=>u.username===username && u.password===password)
 
-if(!user){
-return res.json({success:false})
-}
+if(!user) return res.json({success:false})
 
 req.session.user=username
 
@@ -85,37 +82,19 @@ res.json({success:true})
 })
 })
 
-app.get("/generate-code",(req,res)=>{
-
-if(!req.session.user){
-return res.status(401).json({error:"login"})
-}
-
-const code=Math.floor(100000+Math.random()*900000)
-
-req.session.code=code
-
-res.json({code})
-
-})
-
 app.post("/report",upload.single("image"),(req,res)=>{
 
-if(!req.session.user){
-return res.status(401).send("login required")
-}
+if(!req.session.user) return res.status(403).send("login required")
 
-const reports=getReports()
+let reports=getReports()
 
-const newReport={
+reports.push({
 id:Date.now(),
 user:req.session.user,
 description:req.body.description,
 image:req.file ? "/uploads/"+req.file.filename : null,
-time:new Date().toISOString()
-}
-
-reports.push(newReport)
+time:new Date().toLocaleString()
+})
 
 saveReports(reports)
 
@@ -123,17 +102,25 @@ res.redirect("/report.html")
 
 })
 
-app.get("/admin/reports",checkAdmin,(req,res)=>{
+app.get("/admin/reports",(req,res)=>{
+
+if(req.session.user !== ADMIN){
+return res.status(403).send("admin only")
+}
+
 res.json(getReports())
+
 })
 
-app.delete("/admin/delete/:id",checkAdmin,(req,res)=>{
+app.delete("/admin/delete/:id",(req,res)=>{
 
-const id=parseInt(req.params.id)
+if(req.session.user !== ADMIN){
+return res.status(403).send("admin only")
+}
 
 let reports=getReports()
 
-reports=reports.filter(r=>r.id!==id)
+reports=reports.filter(r=>r.id != req.params.id)
 
 saveReports(reports)
 
@@ -142,5 +129,5 @@ res.json({success:true})
 })
 
 app.listen(PORT,()=>{
-console.log("Server running")
+console.log("server running")
 })
